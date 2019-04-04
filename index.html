@@ -1,0 +1,102 @@
+
+<div>
+This video will start playing when the Jeopardy ticket website no longer contains the words 'no tapings scheduled'.
+<br/><br/>
+<div>Last request status: <span id='lastRequestStatus'>N/A</span></div>
+<div>Last request time: <span id='lastRequestTime'>Never</span></div>
+<div>Are tickets available? <span id='areTicketsAvailable'>No</span></div>
+Click when ready: <a href='https://www.jeopardy.com/tickets'>https://www.jeopardy.com/tickets</a>
+</div>
+<div id='video-placeholder'></div>
+<br/><br/>
+<i>Note: this depends on the APIs of https://cors-anywhere.herokuapp.com and YouTube being available. There are cleaner and more reliable
+  ways to query the Jeopardy website. If you know how to write a Python program or a bash script, do that instead. You won't need to deal
+  with CORS, portable audio playback, or background tabs getting throttled.
+</i>
+<script src='https://www.youtube.com/iframe_api'></script>
+<script>
+var player;
+var worker;
+
+var POLL_INTERVAL_SECONDS = 60;
+var POLL_INTERVAL_MILLISECONDS = POLL_INTERVAL_SECONDS * 1000;
+
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('video-placeholder', {
+        width: 300,
+        height: 200,
+        videoId: 'kZwhNFOn4ik',
+        playerVars: {
+            loop: 1,
+        },
+        events: {
+            onReady: initialize,
+        }
+    });
+}
+
+function initialize(){
+  if (player.isMuted()){
+    player.unMute();
+  }
+
+  player.setPlaybackQuality('small');
+
+  var blob = new Blob([
+    document.querySelector('#worker').textContent
+  ], { type: "text/javascript" })
+
+  var isWorkerRunning = false;
+  window.setInterval(() => {
+    if (isWorkerRunning) {
+      console.log('Allowing previous request to continue...')
+      return;
+    }
+
+    worker = new Worker(window.URL.createObjectURL(blob));
+    isWorkerRunning = true;
+
+    worker.onmessage = (e) => {
+      isWorkerRunning = false;
+      document.getElementById('lastRequestTime').textContent = new Date().toLocaleTimeString();
+
+      var data = e.data;
+      if (data.status === 200) {
+        document.getElementById('lastRequestStatus').textContent = 'Succeeded.';
+        if (data.tickets) {
+          document.getElementById('areTicketsAvailable').textContent = 'Yes';
+          player.playVideo();
+        }
+      } else {
+        document.getElementById('lastRequestStatus').textContent = `Failed with status ${data.status}: ${data.error}`;
+      }
+    };
+
+    document.getElementById('lastRequestStatus').textContent = 'In progress...';
+  }, POLL_INTERVAL_MILLISECONDS);
+}
+
+
+</script>
+<script id='worker'>
+var url = 'https://cors-anywhere.herokuapp.com/https://www.jeopardy.com/tickets'
+
+var request = new XMLHttpRequest();
+request.open('GET', url);
+request.send();
+request.onreadystatechange=(e)=>{
+  if (request.readyState === 4) {
+    var status = request.status;
+    var success = request.status === 200;
+    var tickets = !request.responseText.includes('no tapings scheduled');
+    var error = success ? null : request.responseText;
+
+    postMessage({
+      success: success,
+      tickets: tickets,
+      status: status,
+      error: error
+    });
+  }
+}
+</script>
