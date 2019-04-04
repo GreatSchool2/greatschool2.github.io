@@ -3,7 +3,7 @@
 This video will start playing when the Jeopardy ticket website no longer contains the words 'no tapings scheduled'.
 <br/><br/>
 <div>Last request status: <span id='lastRequestStatus'>N/A</span></div>
-<div>Last request time: <span id='lastRequestTime'>Never</span></div>
+<div>Last successful request time: <span id='lastRequestTime'>Never</span></div>
 <div>Are tickets available? <span id='areTicketsAvailable'>No</span></div>
 Click when ready: <a href='https://www.jeopardy.com/tickets'>https://www.jeopardy.com/tickets</a>
 </div>
@@ -25,7 +25,6 @@ Click when ready: <a href='https://www.jeopardy.com/tickets'>https://www.jeopard
       var success = request.status === 200;
       var tickets = !request.responseText.includes('no tapings scheduled');
       var error = success ? null : request.responseText;
-      console.log('Posting message' + success + tickets + status);
       postMessage({
         success: success,
         tickets: tickets,
@@ -73,10 +72,10 @@ function pollSite() {
 
   worker.onmessage = (e) => {
     isWorkerRunning = false;
-    document.getElementById('lastRequestTime').textContent = new Date().toLocaleTimeString();
 
     var data = e.data;
     if (data.status === 200) {
+      document.getElementById('lastRequestTime').textContent = new Date().toLocaleTimeString();
       document.getElementById('lastRequestStatus').textContent = 'Succeeded.';
       if (data.tickets) {
         document.getElementById('areTicketsAvailable').textContent = 'Yes';
