@@ -11,8 +11,17 @@ Click when ready: <a href='https://www.jeopardy.com/tickets'>https://www.jeopard
 <br/><br/>
 <i>Note: this depends on the APIs of https://cors-anywhere.herokuapp.com and YouTube being available. There are cleaner and more reliable
   ways to query the Jeopardy website. If you know how to write a Python program or a bash script, do that instead. You won't need to deal
-  with CORS, portable audio playback, or background tabs getting throttled. This site doesn't work on Opera Mini.
+  with CORS, portable audio playback, or background tabs getting throttled. This site doesn't work on Opera Mini. Also, full disclosure: 
+  I'm running Google Analytics JavaScript, so I can see how much traffic this site is getting.
 </i>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-137820714-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-137820714-1');
+</script>
 <script id='worker' type='javascript/worker'>
   var url = 'https://cors-anywhere.herokuapp.com/https://www.jeopardy.com/tickets'
 
